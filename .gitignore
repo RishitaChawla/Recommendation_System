@@ -1,0 +1,7 @@
+# Raw and processed data may contain private/internal IDs
+data/raw/
+data/processed/
+outputs/
+.venv/
+__pycache__/
+*.pyc
