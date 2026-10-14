@@ -33,25 +33,6 @@ data/raw/online_retail_II.xlsx
 
 Do not commit raw transactions or files containing customer identifiers.
 
-## Repository layout
-
-```text
-Recommendation_System/
-├── build_matrix.py           # Clean transactions, split by time, build sparse matrix
-├── run_analysis.py           # Compare PCA/SVD, evaluate, cluster, create figures
-├── requirements.txt          # Python dependencies
-├── .gitignore
-├── README.md
-├── data/
-│   ├── raw/                  # Local dataset; ignored by Git
-│   │   └── online_retail_II.xlsx
-│   └── processed/            # Generated intermediate data; keep private
-└── outputs/                  # Generated analysis files; not committed in this repo
-```
-
-The `data/processed/` and `outputs/` directories are created by the scripts when they run. They do **not** need to be present in the GitHub repository.
-
-**Submission note:** The figures and result files were provided separately by direct upload rather than committed to Git. Therefore, they may not appear in the repository's file listing. The commands below reproduce the analysis locally. The stakeholder memo and presentation are submitted separately.
 
 ## How to run
 
