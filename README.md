@@ -90,7 +90,6 @@ python run_analysis.py
 
 This command fits PCA and TruncatedSVD at **k = 10, 20, 50, 100, and 200**, evaluates held-out recommendations, compares efficiency and reconstruction error, and produces customer segmentation plots and summary tables in `outputs/`.
 
-Run the two commands **in order**, from the repository root. No pre-existing `outputs/` directory is required.
 
 ## Data engineering and leakage prevention
 
