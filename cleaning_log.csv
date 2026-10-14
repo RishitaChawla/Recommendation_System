@@ -1,0 +1,8 @@
+rule,rows_before,rows_removed,rows_after
+remove cancellation invoices,1067371,19494,1047877
+remove missing invoice date,1047877,0,1047877
+remove non-positive quantity,1047877,3457,1044420
+remove non-positive price,1044420,2750,1041670
+remove missing customer ID,1041670,236121,805549
+remove missing product code,805549,0,805549
+remove non-product codes,805549,2905,802644
