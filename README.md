@@ -1,40 +1,34 @@
-# Customers Like You — PCA vs. TruncatedSVD for Retail Recommendations
+# Customers Like You — PCA vs. TruncatedSVD
 
-**Mini-project | Data Engineering + Machine Learning**
+A retail recommendation project comparing **Principal Component Analysis (PCA)** and **Truncated Singular Value Decomposition (TruncatedSVD)** using the UCI Online Retail II dataset.
 
-A reproducible recommendation-system experiment using the **UCI Online Retail II** dataset. The project compares Principal Component Analysis (PCA) and Truncated Singular Value Decomposition (TruncatedSVD) for compressing customer purchase histories, recommending products, and identifying customer segments.
+The goal is to see how well these methods compress customer purchase histories, recommend products customers have not bought before, and help identify useful customer segments.
 
-**Repository:** https://github.com/RishitaChawla/Recommendation_System
+**Repository:** [https://github.com/RishitaChawla/Recommendation_System](https://github.com/RishitaChawla/Recommendation_System)
 
-## Project goals and success criteria
+## What this project does
 
-The fictional retailer **GiftLane** wants to improve product recommendations and help its marketing team understand customer groups. The project aims to:
-
-1. Build a clean, sparse customer × product purchase matrix without test-data leakage.
-2. Reduce storage and computational cost using latent factors.
-3. Achieve a higher **Hit Rate@10** than recommending the ten most popular products.
-4. Compare PCA and TruncatedSVD using accuracy, reconstruction quality, runtime, and memory.
-5. Visualize customers in two dimensions and describe meaningful marketing segments.
-6. Keep customer identifiers out of public reports, plots, and repository artifacts.
+- Builds a sparse customer–product purchase matrix from retail transactions.
+- Compares PCA and TruncatedSVD using different numbers of components.
+- Evaluates recommendations against a best-selling-products baseline.
+- Measures recommendation accuracy, reconstruction error, runtime, and memory usage.
+- Visualizes customer groups based on their purchasing patterns.
 
 ## Dataset
 
-**Source:** [Online Retail II — UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/502/online+retail+ii)  
-**Citation:** Chen, D. (2012). *Online Retail II* [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5CG6D  
-**License:** CC BY 4.0
+We use the [UCI Online Retail II dataset](https://archive.ics.uci.edu/dataset/502/online+retail+ii), which contains approximately 1.07 million transaction records from December 2009 to December 2011.
 
-The workbook contains **1,067,371 transaction lines** across two worksheets (`2009-2010` and `2010-2011`), covering December 2009 through December 2011.
+**Citation:** Chen, D. (2012). *Online Retail II* [Dataset]. UCI Machine Learning Repository. [https://doi.org/10.24432/C5CG6D](https://doi.org/10.24432/C5CG6D)
 
-**The dataset is intentionally excluded from Git using `.gitignore`.** Download the original workbook yourself and save it at:
+The dataset is not included in this repository. Download the workbook and save it as:
 
 ```text
 data/raw/online_retail_II.xlsx
 ```
 
-Do not commit raw transactions or files containing customer identifiers.
+The project script also creates the raw data folder automatically and can fetch the workbook from the UCI archive if it is missing.
 
-
-## How to run
+## Getting started
 
 ### 1. Clone the repository
 
@@ -43,9 +37,9 @@ git clone https://github.com/RishitaChawla/Recommendation_System.git
 cd Recommendation_System
 ```
 
-### 2. Set up Python and install dependencies
+### 2. Set up the environment
 
-Python 3.10+ is recommended.
+Python 3.10 or later is recommended.
 
 ```bash
 python -m venv .venv
@@ -53,152 +47,100 @@ python -m venv .venv
 
 Activate the environment:
 
-- **Windows (PowerShell):** `.venv\Scripts\Activate.ps1`
+- **Windows PowerShell:** `.venv\Scripts\Activate.ps1`
 - **macOS/Linux:** `source .venv/bin/activate`
 
-Then install:
+Install the dependencies:
 
 ```bash
 python -m pip install -r requirements.txt
 ```
 
-The analysis uses NumPy, pandas, SciPy, scikit-learn, Matplotlib, openpyxl, and psutil.
+### 3. Add the dataset
 
-### 3. Download the data
+Download Online Retail II from the UCI link above and place the Excel workbook in `data/raw/`.
 
-Download the **Online Retail II** workbook from the UCI link above, extract it if needed, and place it at:
+### 4. Run the project
 
-```text
-data/raw/online_retail_II.xlsx
-```
-
-Make sure the workbook contains both yearly sheets.
-
-### 4. Build the training matrix
+Build the training matrix:
 
 ```bash
 python build_matrix.py
 ```
 
-This command loads both sheets, profiles missing values, removes invalid transactions, creates a chronological split, and saves a sparse training matrix and private intermediate files in `data/processed/`.
-
-### 5. Run the full analysis
+Run the analysis:
 
 ```bash
 python run_analysis.py
 ```
 
-This command fits PCA and TruncatedSVD at **k = 10, 20, 50, 100, and 200**, evaluates held-out recommendations, compares efficiency and reconstruction error, and produces customer segmentation plots and summary tables in `outputs/`.
+The scripts generate the comparison tables, plots, and customer segment summaries locally.
 
+## How it works
 
-## Data engineering and leakage prevention
+**Data preparation:** Both workbook sheets are combined, and invalid transactions, cancelled invoices, and selected non-product codes are removed.
 
-The pipeline:
+**Train/test split:** The final two months are reserved for testing. The customer and product mappings are built from training data only. Test targets include products that a customer purchased during the test period but had not purchased during training. Products absent from the training catalogue are excluded.
 
-- Combines both workbook sheets and normalizes column names.
-- Removes cancelled invoices, non-positive quantities/prices, missing customer IDs, and selected non-product stock codes.
-- Reserves the **last two months** for testing.
-- Builds customer/product index maps and the purchase matrix using **training data only**.
-- Represents each customer–product purchase as `log1p(total positive quantity)` in a SciPy sparse matrix.
-- Evaluates only held-out products the customer had **not previously purchased**, among customers and products represented in training.
-- Checks that train/test periods do not overlap and that held-out customer–product pairs were unseen.
+**Purchase matrix:** Each customer–product value is calculated using `log1p` of the aggregated positive purchase quantity. The matrix is stored as a sparse matrix to avoid wasting memory on the many zero entries.
 
-Private mappings and transaction-level intermediate data are for local use only.
+**Model comparison:** PCA and TruncatedSVD are evaluated using `k = 10, 20, 50, 100, and 200` components.
 
-## Recommendation and evaluation method
+The comparison includes:
 
-**TruncatedSVD** works directly with sparse input without mean-centering. **PCA** mean-centers features and provides a comparison against a different representation of purchase behavior.
+- Hit Rate@10 and a best-seller baseline
+- Fit time and sampled peak memory
+- Reconstruction error
+- Storage required for customer and product factors
 
-For each candidate number of components, the analysis records:
+The project also uses a two-dimensional customer projection and four clusters to explore differences in purchasing patterns.
 
-- **Hit Rate@10:** fraction of eligible test customers whose ten recommendations contain at least one held-out product.
-- **Best-seller baseline:** ten popular training products, excluding products already purchased by the customer.
-- **Fit time:** time to fit each model.
-- **Memory:** sampled peak process resident memory during fitting.
-- **Reconstruction error:** relative error estimated using a fixed sample of training rows.
-- **Factor storage:** memory occupied by customer and product factor arrays.
+## Results
 
-The customer visualization uses two-dimensional latent coordinates and **four** clusters, interpreted using purchase patterns, product categories, and countries.
-
-## Results from the validated run
-
-The following numbers are from the final successful analysis run and are included for reference. Actual timing and memory may vary across computers.
-
-### Data summary
-
-| Measure | Result |
-|---|---:|
-| Raw transaction rows | 1,067,371 |
-| Rows after cleaning | 802,644 |
-| Training rows | 684,081 |
-| Test-period rows | 118,563 |
-| Training matrix | 5,474 customers × 4,532 products |
-| Nonzero matrix entries | 417,724 |
-| Sparsity | 98.3162% |
-| Dense float32 matrix estimate | 94.636 MiB |
-| Sparse matrix storage | 3.208 MiB |
-| Eligible held-out customers | 1,916 |
-
-### PCA vs. TruncatedSVD (k = 100)
+The reported analysis run selected **TruncatedSVD with 100 components**.
 
 | Measure | PCA | TruncatedSVD |
 |---|---:|---:|
 | Hit Rate@10 | 21.50% | **22.18%** |
 | Fit time | 0.66 s | **0.53 s** |
-| Sampled relative reconstruction error | 0.7424 | 0.7425 |
-| Sampled peak process RSS during fit | 434.86 MiB | 216.55 MiB |
+| Relative reconstruction error | 0.7424 | 0.7425 |
+| Sampled peak process memory during fit | 434.86 MiB | **216.55 MiB** |
 
-**Best-seller baseline Hit Rate@10: 17.38%.**  
-**Selected model: TruncatedSVD with 100 components**, delivering approximately **+4.80 percentage points** over the baseline on this held-out evaluation.
+The best-seller baseline achieved a Hit Rate@10 of **17.38%**. TruncatedSVD performed approximately **4.80 percentage points better** on this evaluation.
 
-The stored customer and product factor arrays at k = 100 occupy approximately **3.82 MiB**.
+At 100 components, the stored customer and product factor arrays occupy approximately **3.82 MiB**.
 
-**Measurement caveats:** Reconstruction error is estimated on sampled training rows, not the entire matrix. Memory figures are sampled process-level RSS, not model-only allocations; the PCA measurement excludes its earlier dense-conversion step. Model fit time and the total experimental runtime are **not** a production nightly-job benchmark. Results can vary with package versions and hardware.
+The training matrix contains **5,474 customers** and **4,532 products**, with **417,724 nonzero entries**. Its estimated dense float32 representation requires about **94.64 MiB**, compared with approximately **3.21 MiB** for sparse storage.
 
-### Customer segments
+The full data-prep run produced:
 
-| Segment | Customers | Descriptive label |
-|---|---:|---|
-| 1 | 334 | Frequent Multi-Product Shoppers |
-| 2 | 1,050 | Regular Gift & Home Shoppers |
-| 3 | 4,078 | Occasional Gift Shoppers |
-| 4 | 12 | Very High-Activity Shoppers |
+- Raw transaction rows: **1,067,371**
+- Rows after cleaning: **802,644**
+- Training rows: **684,081**
+- Test-period rows: **118,563**
+- Sparsity: **98.3162%**
 
-These labels summarize observed purchasing activity, **not** verified revenue, profit, or purchase frequency by invoice.
-
-## Files generated locally
-
-After running the scripts, typical files include:
-
-**`data/processed/`** — sparse training matrix, anonymized test indices, data profile, cleaning log, matrix report, and private customer/product mappings.
-
-**`outputs/`** — `pca_vs_svd_comparison.csv`, `run_summary.json`, `hit_rate_vs_k.png`, `fit_time_vs_k.png`, `reconstruction_error_vs_k.png`, `customer_segments.png`, `customer_segment_summary.csv`, `cluster_activity_summary.csv`, and anonymous segment coordinates.
-
-These files are **generated locally** and are **not included in the GitHub repository** because the project results were shared through direct upload. Avoid publishing internal mapping files or any export that contains raw customer IDs.
+*These are results from the validated project run; exact timing and memory can vary by machine and package version. Reconstruction error was estimated on sampled rows, and memory measurements are sampled process-level values rather than exact model-only allocations.*
 
 ## Why TruncatedSVD?
 
-TruncatedSVD was chosen because it operates natively on the highly sparse purchase matrix, avoids PCA's dense centering overhead in this implementation, and achieved the highest measured Hit Rate@10 among the tested SVD configurations. The choice is based on held-out accuracy and practical efficiency, rather than reconstruction error alone.
+TruncatedSVD was the preferred method because it works directly with sparse data and achieved a slightly higher Hit Rate@10 with lower measured fit time and peak memory in this experiment.
+
+PCA produced a similar reconstruction error, so the choice was based on recommendation performance and practical efficiency rather than reconstruction quality alone.
 
 ## Limitations and next steps
 
-- New customers and products without training history are not evaluated (cold-start problem).
-- Offline Hit Rate@10 is not a guarantee of online sales lift.
-- Customer segments are exploratory and should be validated before targeted campaigns.
-- The comparison does not prove that the pipeline meets a production nightly service-level target.
-- A production version should include incremental updates, monitoring, and an A/B test against the best-seller baseline.
+- New customers and products are not covered by this evaluation.
+- Offline recommendation accuracy does not guarantee increased sales.
+- Customer clusters are exploratory and need further validation before being used for marketing campaigns.
+- A production system would need monitoring, incremental updates, and an A/B test against the best-seller baseline.
 
 ## Privacy and reproducibility
 
-The experiment uses a fixed random seed (`42`) and records the preprocessing and evaluation steps in code. Raw customer IDs and internal mappings should remain local. Public-facing visualizations and summaries use anonymous coordinates or descriptive segment names.
+The experiment uses a fixed random seed of `42`. Download the dataset, install the dependencies, and run the two scripts in order to reproduce the analysis.
 
-To reproduce the analysis, download the dataset, install `requirements.txt`, and run:
+Raw data, customer IDs, and internal mapping files should remain private. Do not publish them in public reports, figures, or repository artifacts.
 
-```bash
-python build_matrix.py
-python run_analysis.py
-```
+## Assignment
 
-## Assignment context
-
-This project responds to the *Customers Like You — PCA or SVD* mini-project brief for the fictional GiftLane retailer and stakeholder Sarah Okafor. The deliverables include the code, evaluation, customer map, a one-page stakeholder memo, and a five-minute presentation. Team contributions, reflections, and peer evaluations are handled separately according to the assignment instructions.
+This project was developed for the *Customers Like You — PCA or SVD* mini-project, using the fictional retailer GiftLane as the business context. The remaining deliverables include a stakeholder memo, a five-minute presentation, and individual/team reflection materials.
