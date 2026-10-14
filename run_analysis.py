@@ -1,12 +1,5 @@
-"""
-Fit SVD and PCA, evaluate recommendations, and create a customer segment map.
 
-Run after build_matrix.py:
-    python run_analysis.py
 
-Note: PCA is fitted to a dense copy of the matrix. If your computer runs out of
-memory, reduce the dataset/product catalogue first or run only the SVD path.
-"""
 from pathlib import Path
 import json
 import time
@@ -31,9 +24,7 @@ TOP_N = 10
 
 def hit_rate_at_k(factor_model, A, test_df, popularity, k=10):
     """
-    For each eligible test customer, check whether any held-out product is
-    in the top-k recommendations. Exclude products already bought in training.
-    factor_model is a product-factor matrix (n_products x n_components).
+    check whether any held-out product is in the top-k recommendations. Exclude products existing.
     """
     product_vectors = normalize(np.asarray(factor_model, dtype=np.float32))
     test_targets = test_df.groupby("customer_idx")["product_idx"].apply(set).to_dict()
@@ -141,8 +132,7 @@ def main():
             fitted["svd_customers"] = svd_customer_factors
         print(f"SVD k={k}: fit={svd_fit_time:.2f}s, hit@10={svd_hit:.3f}, error={svd_error:.3f}")
 
-    # PCA's centering can be memory-intensive. Fit it on dense data as the
-    # assignment asks for a PCA-vs-SVD comparison on the same matrix.
+    # PCA's centering can be memory-intensive. Fit it on dense data as the PCA-vs-SVD comparison on the same matrix.
     dense = A.toarray()
     for k in ks:
         start = time.perf_counter()
@@ -208,8 +198,7 @@ def main():
     labels = clusterer.fit_predict(customer_factors)
 
     # Use top products and countries to help describe clusters.
-    # Country is not in the matrix, so recover the most common country from cleaned raw data.
-    # This optional summary uses only aggregate descriptions; no customer IDs are exported.
+
     cluster_summary = []
     # product scores by cluster: average purchase vector within each cluster
     for cluster_id in sorted(np.unique(labels)):
